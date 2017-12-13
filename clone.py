@@ -2,8 +2,9 @@ import csv
 import cv2
 import numpy as np
 
+STEERING_OFFSET=0.2
 VALIDATION_PERCENTAGE=0.2
-EPOCHS=6
+EPOCHS=10
 
 TRAINING_DATA = ['training1', 'training2', 'training3', 'training4', 'training5']
 
@@ -16,6 +17,7 @@ BREAK = 5
 SPEED = 6
 
 def loadImages(folder):
+    print("Loading training data from folder: %s" % folder)
     lines = []
     with open('./' + folder + '/driving_log.csv') as csvfile:
         reader = csv.reader(csvfile)
@@ -25,14 +27,20 @@ def loadImages(folder):
     images = []
     steering_angles = []
     for line in lines:
-        source_path = line[IMG_CENTER]
-        filename = source_path.split('/')[-1]
-        current_path = './' + folder + '/IMG/' + filename
-        image = cv2.imread(current_path)
-        images.append(image)
+        images.append(getImage(line, folder, IMG_CENTER))
         steering_angle = float(line[STEERING_ANGLE])
         steering_angles.append(steering_angle)
+        images.append(getImage(line, folder, IMG_LEFT))
+        steering_angles.append(steering_angle + STEERING_OFFSET)
+        images.append(getImage(line, folder, IMG_RIGHT))
+        steering_angles.append(steering_angle - STEERING_OFFSET)
     return images, steering_angles
+
+def getImage(line, folder, column):
+    source_path = line[column]
+    filename = source_path.split('/')[-1]
+    current_path = './' + folder + '/IMG/' + filename
+    return cv2.imread(current_path)
 
 images = []
 steering_angles = []
@@ -41,16 +49,26 @@ for data in TRAINING_DATA:
     images.extend(imgs)
     steering_angles.extend(angles)
 
-X_train = np.array(images)
-y_train = np.array(steering_angles)
+print("Generating augmented data")
+augmented_images = []
+augmented_steering_angles = []
+for image, steering_angle in zip(images, steering_angles):
+    augmented_images.append(image)
+    augmented_steering_angles.append(steering_angle)
+    augmented_images.append(cv2.flip(image, 1))
+    augmented_steering_angles.append(steering_angle*-1.0)
+
+X_train = np.array(augmented_images)
+y_train = np.array(augmented_steering_angles)
 
 
 def leNet():
     from keras.models import Sequential
-    from keras.layers import Lambda, Flatten, Dense, MaxPooling2D, Convolution2D
+    from keras.layers import Cropping2D, Lambda, Flatten, Dense, MaxPooling2D, Convolution2D
 
     model = Sequential()
-    model.add(Lambda(lambda x: x / 255.0 - 0.5, input_shape=(160,320,3)))
+    model.add(Cropping2D(cropping=((50,20), (0,0)), input_shape=(160,320,3)))
+    model.add(Lambda(lambda x: x / 255.0 - 0.5))
     model.add(Convolution2D(6,5,5,activation="relu"))
     model.add(MaxPooling2D())
     model.add(Convolution2D(6,5,5,activation="relu"))
