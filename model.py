@@ -2,12 +2,15 @@ import csv
 import cv2
 import numpy as np
 
+# Parameters
 STEERING_OFFSET=0.2
 VALIDATION_PERCENTAGE=0.2
 EPOCHS=10
 
+# Folders to check for training data
 TRAINING_DATA = ['training1', 'training2', 'training3', 'training4', 'training5']
 
+# ColumnIds for the testdata
 IMG_CENTER = 0
 IMG_LEFT = 1
 IMG_RIGHT = 2
@@ -16,6 +19,7 @@ THROTTLE = 4
 BREAK = 5
 SPEED = 6
 
+# Loads the training data from the provided folder paramter
 def loadImages(folder):
     print("Loading training data from folder: %s" % folder)
     lines = []
@@ -27,15 +31,19 @@ def loadImages(folder):
     images = []
     steering_angles = []
     for line in lines:
+        # center image
         images.append(getImage(line, folder, IMG_CENTER))
         steering_angle = float(line[STEERING_ANGLE])
         steering_angles.append(steering_angle)
+        # left image + correction of stearing
         images.append(getImage(line, folder, IMG_LEFT))
         steering_angles.append(steering_angle + STEERING_OFFSET)
+        # left image + correction of stearing
         images.append(getImage(line, folder, IMG_RIGHT))
         steering_angles.append(steering_angle - STEERING_OFFSET)
     return images, steering_angles
 
+# Get image from line and folder and column (CENTER, LEFT, RIGHT)
 def getImage(line, folder, column):
     source_path = line[column]
     filename = source_path.split('/')[-1]
@@ -44,6 +52,7 @@ def getImage(line, folder, column):
 
 images = []
 steering_angles = []
+# Load test data from each training folder
 for data in TRAINING_DATA:
     imgs, angles = loadImages(data)
     images.extend(imgs)
@@ -52,6 +61,7 @@ for data in TRAINING_DATA:
 print("Generating augmented data")
 augmented_images = []
 augmented_steering_angles = []
+# Generate augmented data - flipping the image
 for image, steering_angle in zip(images, steering_angles):
     augmented_images.append(image)
     augmented_steering_angles.append(steering_angle)
