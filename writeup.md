@@ -15,10 +15,8 @@ The goals / steps of this project are the following:
 [image1]: ./writeup_imgs/left.jpg "Left camera of the car"
 [image2]: ./writeup_imgs/center.jpg "Center camera of the car"
 [image3]: ./writeup_imgs/right.jpg "Right camera of the car"
-[image4]: ./examples/placeholder_small.png "Recovery Image"
-[image5]: ./examples/placeholder_small.png "Recovery Image"
-[image6]: ./examples/placeholder_small.png "Normal Image"
-[image7]: ./examples/placeholder_small.png "Flipped Image"
+[image4]: ./writeup_imgs/cropped.jpg "Cropped image"
+[image5]: ./writeup_imgs/flipped.jpg "Flipped image"
 
 ## Rubric Points
 ### Here I will consider the [rubric points](https://review.udacity.com/#!/rubrics/432/view) individually and describe how I addressed each point in my implementation.  
@@ -91,7 +89,13 @@ The next step was to use not only the center image, but as well the left and rig
 
 The model was overfitting after 7 epochs. The model worked pretty good, even in curves, but sometimes got totally lost and just drove off the road.
 
-The final step was to crop the image from the top 50pxs and from the bottom 20px.
+The final step was to crop the image from the top 50pxs and from the bottom 20px. So you dont see the background and not the front of the car. This won't give you any information of what to do.
+
+![Cropped image][image4]
+
+I created extra augmented data to prevent from overfitting because in a round you would always do more left or right curves because its a circle. So I flipped every image and inverted the steering angle.
+
+![Fipped image][image5]
 
 The loss went down dramatically but it took 10 epochs after it was overfitting.
 
@@ -136,8 +140,8 @@ To capture good driving behavior I created the following training sets:
 
 To augment the data sat, I also flipped images and angles thinking that this would even up left and right corners in the training data.
 
-After the collection process, I had 35046 number of data points. I then preprocessed this data by normalizing and cropping (for more information see above).
+After the collection process, I had 72648 number of data points. I then preprocessed this data by normalizing and cropping (for more information see above).
 
-I finally randomly shuffled the data set and put 20% of the data into a validation set (28036 training data points, 7010 validation data points).
+I finally randomly shuffled the data set and put 20% of the data into a validation set (58116 training data points, 14532 validation data points).
 
 I used this training data for training the model. The validation set helped determine if the model was over or under fitting. The ideal number of epochs was 10. Throughout the development it moved down to 4 and raised up to 10 and finally went to 1 again. I used an adam optimizer so that manually training the learning rate wasn't necessary.
